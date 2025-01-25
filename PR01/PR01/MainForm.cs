@@ -6,6 +6,8 @@ namespace PR01
 {
     public partial class rendere : Form
     {
+        double x1 = -8.5, x2 = 2.5, y1 = -4.5, y2 = 1.5;
+
         public rendere()
         {
             InitializeComponent();
@@ -17,31 +19,61 @@ namespace PR01
             glMatrixMode(GL_VIEWPORT);
             glLoadIdentity();
             glViewport(0, 0,  renderer.Width, renderer.Height);
-            glOrtho(-7.5, 1.5, -3.5, 0.5, 0.0, 1.0);
+            glOrtho(x1, x2, y1, y2, 0.0, 1.0);
 
+            drawCoordinates();
 
-            glBegin(GL_LINES);
+            double[] vertices = { -5.5, -3.5, -7.5, -2.5, -6.5, .5, -5.5, .5, -4.5, -1.5, -5.5, -3.5 };
 
-            for (double i = -3.5; i <= 0.5; i += 0.5)
-            {
-                glVertex2d(-7.5, i);
-                glVertex2d(1.5, i);
-            }
+            glLineWidth(8);
 
-            for (double i = -7.5; i <= 1.5; i += 0.5)
-            {
-                glVertex2d(i, -3.5);
-                glVertex2d(i, 0.5);
-            }
+            glBegin(GL_LINE_STRIP);
+
+            draw(vertices);
 
             glEnd();
 
-            //glBegin(GL_LINE_LOOP);
-            //glVertex2f(0, 0);
-            //glVertex2f(2.5f, 0);
-            //glVertex2f(5.0f, 5.0f);
-            //glEnd();
+            glEnable(GL_POINT_SMOOTH);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glPointSize(13);
+            glBegin(GL_POINTS);
+            draw(vertices, 5);
+            glEnd();
+        }
 
+        private void drawCoordinates()
+        {
+            glLineWidth(3);
+            glLineStipple(1,0xFF00);
+            glEnable(GL_LINE_STIPPLE);
+            glBegin(GL_LINES);
+
+           
+
+            for (double i = y1; i <= y2; i++)
+            {
+                glVertex2d(x1, i);
+                glVertex2d(x2, i);
+
+                for (double j = x1; j <= x2; j++)
+                {
+                    glVertex2d(j, y1);
+                    glVertex2d(j, y2);
+                }
+            }
+
+
+            glEnd();
+            glDisable(GL_LINE_STIPPLE);
+        }
+
+        private void draw(double[] vertices, int modifier = 0)
+        {
+            for (int i = 0, j = 1; i < vertices.Length; i += 2, j += 2)
+            {
+                glVertex2d(vertices[i] + modifier, vertices[j]);
+            }
         }
     }
 }
