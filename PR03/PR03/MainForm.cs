@@ -1,28 +1,35 @@
 ﻿using System;
 using System.Drawing.Imaging;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using static PR03.OpenGL;
+using System.Collections.Generic;
+using System.Linq;
 
 
 namespace PR03
 {
     public partial class MainForm : Form
     {
-        float x1, x2, y1 = -2.5f, y2 = 3.0f, points;
+        float x1, x2, y1, y2, points;
 
         public MainForm()
         {
 
             InitializeComponent();
-            points = (float)numericUpDown3.Value;
-            x1 = (float)numericUpDown1.Value;
-            x2 = (float)numericUpDown2.Value;
         }
 
         private void render(object sender, System.EventArgs e)
         {
+            points = (float)numericUpDown3.Value;
+            x1 = (float)numericUpDown1.Value;
+            x2 = (float)numericUpDown2.Value;
+
+            List<double> yPositions = FindMinY();
+            float minY = (float)Math.Round(yPositions.Min(), 1);
+            y1 = (float)Math.Round(yPositions.Min(), 1);
+            y2 = (float)Math.Round(yPositions.Max(), 1) + .5f;
+            y1 = (float)Math.Round(y1 - (.5f + y1 % .5f), 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glLoadIdentity();
             glViewport(0, 0, rendere.Width, rendere.Height);
@@ -38,8 +45,6 @@ namespace PR03
 
         private void DrawLabels()
         {
-
-            glColor3f(0.0f, 0.0f, 0.0f);
             glColor3f(1.0f, 1.0f, 1.0f);
             for (float i = x1; i <= x2; i += 0.2f)
             {
@@ -80,16 +85,12 @@ namespace PR03
 
         private void drawCoordinates()
         {
-
-
             glBegin(GL_LINES);
 
             for (float i = y1; i <= y2; i += .5f)
             {
                 glVertex2f(x1, i);
                 glVertex2f(x2, i);
-
-
 
                 for (float j = x1; j <= x2; j += .2f)
                 {
@@ -121,10 +122,10 @@ namespace PR03
             for (int i = 0; i < points - 1; i++)
             {
                 double x = x1 + i * h;
-                double y = 1 / Math.Tan(1.25 * Math.Sin(2 * x + Math.Cos(4 * x)) + Math.PI / 2);
+                double y = CalculateY(x);
 
                 double x_next = x1 + (i + 1) * h;
-                double y_next = 1 / Math.Tan(1.25 * Math.Sin(2 * x_next + Math.Cos(4 * x_next)) + Math.PI / 2);
+                double y_next = CalculateY(x_next);
 
                 if (y * y_next > 0)
                 {
@@ -143,6 +144,26 @@ namespace PR03
                     glPointSize(1);
                 }
             }
+        }
+
+        private double CalculateY(double x)
+        {
+            //return Math.Tan(x) * Math.Cos(Math.PI * x);
+            return 1 / Math.Tan(1.25 * Math.Sin(2 * x + Math.Cos(4 * x)) + Math.PI / 2);
+        }
+
+        private List<double> FindMinY()
+        {
+            float h = (x2 - x1) / (points - 1);
+
+            List<double> y = new List<double>();
+
+            for (int i = 0; i < points - 1; i++)
+            {
+                y.Add(CalculateY(x1 + i * h));
+            }
+
+            return y;
         }
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
